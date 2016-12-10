@@ -12,7 +12,11 @@ def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value
     fig = plt.figure(figsize=(16, 10))
 
     ax = fig.add_subplot(111)
-    ax.set_title('Intensity distribution (log) - {}'.format(' '.join([x.capitalize() for x in out_file.split('_')])))
+    log_scale_text = ' (logarithmic scale)' if log_scale else ''
+    ax.set_title('Intensity distribution{} - {}'.format(
+        log_scale_text,
+        ' '.join([x.capitalize() for x in out_file.split('_')]))
+    )
 
     kwargs = {
         'cmap': 'gray',
