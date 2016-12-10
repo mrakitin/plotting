@@ -38,8 +38,8 @@ def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value
 
     if show_image:
         plt.show()
-
-    plt.savefig(name)
+    else:
+        plt.savefig(name)
 
 
 def prepare_data(dat_file):
