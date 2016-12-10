@@ -1,5 +1,36 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
+
+
+def plot_image(dat_file, out_file, log_scale, min_value, max_value, show_image):
+    list_2d, x, y = prepare_data(dat_file)
+    name = '{}.png'.format(out_file)
+
+    # http://stackoverflow.com/questions/16492830/colorplot-of-2d-array-matplotlib:
+    fig = plt.figure(figsize=(16, 10))
+
+    ax = fig.add_subplot(111)
+    ax.set_title('Intensity distribution (log) - {}'.format(' '.join([x.capitalize() for x in out_file.split('_')])))
+
+    if log_scale:
+        plt.imshow(np.log10(list_2d), cmap='gray', clim=(min_value, max_value))
+    else:
+        plt.imshow(np.log10(list_2d), cmap='gray')
+
+    ax.set_aspect('equal')
+
+    cax = fig.add_axes([0.12, 0.1, 0.78, 0.8])
+    cax.get_xaxis().set_visible(False)
+    cax.get_yaxis().set_visible(False)
+    cax.patch.set_alpha(0)
+    cax.set_frame_on(False)
+    plt.colorbar(orientation='vertical')
+
+    if show_image:
+        plt.show()
+    plt.savefig(name)
 
 
 def prepare_data(dat_file):
@@ -49,35 +80,21 @@ def _read_data(dat_file, skip_lines=11):
 
 
 if __name__ == '__main__':
-    samples = {
-        # 'thin_sample': 'res_int_pr_se-thin_sample.dat',
-        # 'thin_sample_ideal': 'res_int_pr_se-thin_sample-ideal.dat',
-        # 'thick_sample': 'res_int_pr_se-thick_sample.dat',
-        # 'thin_sample_rings': 'res_int_pr_se-thin_sample-rings.dat',
-        'thin_sample_ideal_rings': 'res_int_pr_se-thin_sample-ideal_rings.dat',
-        # 'thick_sample_rings': 'res_int_pr_se-thick_sample-rings.dat',
-    }
+    import argparse
 
-    for s in samples.keys():
-        sample = samples[s]
-        list_2d, x, y = prepare_data(sample)
-        name = '{}.png'.format(s)
+    parser = argparse.ArgumentParser(description='Plot 2D-intensity distribution')
+    parser.add_argument('-d', '--dat_file', dest='dat_file', default='', help='input .dat file')
+    parser.add_argument('-o', '--out_file', dest='out_file', default='image',
+                        help='output image file name (without extension)')
+    parser.add_argument('-l', '--log_scale', dest='log_scale', action='store_true', help='use logarithmic scale')
+    parser.add_argument('--min_value', dest='min_value', default=3, help='minimum value for logarithmic scale')
+    parser.add_argument('--max_value', dest='max_value', default=15, help='maximum value for logarithmic scale')
+    parser.add_argument('-s', '--show_image', dest='show_image', action='store_true', help='show image')
 
-        # http://stackoverflow.com/questions/16492830/colorplot-of-2d-array-matplotlib:
-        fig = plt.figure(figsize=(16, 10))
+    args = parser.parse_args()
 
-        ax = fig.add_subplot(111)
-        ax.set_title('Intensity distribution (log) - {}'.format(' '.join([x.capitalize() for x in s.split('_')])))
-        plt.imshow(np.log10(list_2d), cmap='gray', clim=(3.0, 16.0))
-        # plt.imshow(np.log10(list_2d), cmap='gray')
-        ax.set_aspect('equal')
+    if not args.dat_file or not os.path.isfile(args.dat_file):
+        raise ValueError('No input file found: "{}"'.format(args.dat_file))
 
-        cax = fig.add_axes([0.12, 0.1, 0.78, 0.8])
-        cax.get_xaxis().set_visible(False)
-        cax.get_yaxis().set_visible(False)
-        cax.patch.set_alpha(0)
-        cax.set_frame_on(False)
-        plt.colorbar(orientation='vertical')
-
-        # plt.show()
-        plt.savefig(name)
+    plot_image(dat_file=args.dat_file, out_file=args.out_file, log_scale=args.log_scale, min_value=args.min_value,
+               max_value=args.max_value, show_image=args.show_image)
