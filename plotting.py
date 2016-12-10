@@ -1,5 +1,14 @@
+# -*- coding: utf-8 -*-
+"""
+2D plotting utility.
+
+Date: 2016-12-10
+Author: Maksim Rakitin
+"""
+
 import os
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -8,19 +17,57 @@ def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value
     list_2d, x, y = prepare_data(dat_file)
     name = '{}.png'.format(out_file)
 
+    # http://stackoverflow.com/a/3900167/4143531:
+    mpl.rcParams.update({'font.size': 18})
+
     # http://stackoverflow.com/questions/16492830/colorplot-of-2d-array-matplotlib:
     fig = plt.figure(figsize=(16, 10))
 
     ax = fig.add_subplot(111)
     log_scale_text = ' (logarithmic scale)' if log_scale else ''
-    ax.set_title('Intensity distribution{} - {}'.format(
+    ax.set_title('Intensity Distribution{} - {}'.format(
         log_scale_text,
         ' '.join([x.capitalize() for x in out_file.split('_')]))
     )
 
+    x_units = 'm'
+    y_units = 'm'
+    x_units_prefix = ''
+    y_units_prefix = ''
+
+    unit_prefixes = {
+        'P': 1e15,
+        'T': 1e12,
+        'G': 1e9,
+        'M': 1e6,
+        'k': 1e3,
+        '': 1e0,
+        'm': 1e-3,
+        '$\mu$': 1e-6,
+        'n': 1e-9,
+        'p': 1e-12,
+        'f': 1e-15,
+    }
+    x_min = x.min()
+    x_max = x.max()
+    for k, v in unit_prefixes.items():
+        if v <= abs(x_max - x_min) < v * 1e3:
+            x_units_prefix = k
+            break
+    y_min = y.min()
+    y_max = y.max()
+    for k, v in unit_prefixes.items():
+        if v <= abs(y_max - y_min) < v * 1e3:
+            y_units_prefix = k
+            break
+
     kwargs = {
         'cmap': 'gray',
         'clim': None,
+        'extent': [
+            x_min / unit_prefixes[x_units_prefix], x_max / unit_prefixes[x_units_prefix],
+            y_min / unit_prefixes[y_units_prefix], y_max / unit_prefixes[y_units_prefix],
+        ],
     }
     if log_scale:
         data = np.log10(list_2d)
@@ -32,6 +79,9 @@ def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value
     plt.imshow(data, **kwargs)
 
     ax.set_aspect('equal')
+    # ax.set_aspect('1.25')
+    ax.set_xlabel(r'Horizontal Position [{}{}]'.format(x_units_prefix, x_units))
+    ax.set_ylabel(r'Vertical Position [{}{}]'.format(y_units_prefix, y_units))
 
     cax = fig.add_axes([0.12, 0.1, 0.78, 0.8])
     cax.get_xaxis().set_visible(False)
@@ -50,8 +100,8 @@ def prepare_data(dat_file):
     list_1d, x_range, y_range = _read_data(dat_file)
     list_2d = _convert_1d_to_2d(list_1d, x_range, y_range)
 
-    x = np.linspace(x_range[0], x_range[1], x_range[2])
-    y = np.linspace(y_range[0], y_range[1], y_range[2])
+    x = np.linspace(*x_range)
+    y = np.linspace(*y_range)
 
     return list_2d, x, y
 
