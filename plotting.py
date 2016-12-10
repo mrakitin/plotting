@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_image(dat_file, out_file, log_scale, min_value, max_value, show_image):
+def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value, show_image):
     list_2d, x, y = prepare_data(dat_file)
     name = '{}.png'.format(out_file)
 
@@ -14,10 +14,18 @@ def plot_image(dat_file, out_file, log_scale, min_value, max_value, show_image):
     ax = fig.add_subplot(111)
     ax.set_title('Intensity distribution (log) - {}'.format(' '.join([x.capitalize() for x in out_file.split('_')])))
 
+    kwargs = {
+        'cmap': 'gray',
+        'clim': None,
+    }
     if log_scale:
-        plt.imshow(np.log10(list_2d), cmap='gray', clim=(min_value, max_value))
+        data = np.log10(list_2d)
+        if manual_scale:
+            kwargs['clim'] = (min_value, max_value)
     else:
-        plt.imshow(np.log10(list_2d), cmap='gray')
+        data = list_2d
+
+    plt.imshow(data, **kwargs)
 
     ax.set_aspect('equal')
 
@@ -30,6 +38,7 @@ def plot_image(dat_file, out_file, log_scale, min_value, max_value, show_image):
 
     if show_image:
         plt.show()
+
     plt.savefig(name)
 
 
@@ -87,6 +96,8 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--out_file', dest='out_file', default='image',
                         help='output image file name (without extension)')
     parser.add_argument('-l', '--log_scale', dest='log_scale', action='store_true', help='use logarithmic scale')
+    parser.add_argument('-m', dest='manual_scale', action='store_true',
+                        help='set the limits of the logarithmic scale manually')
     parser.add_argument('--min_value', dest='min_value', default=3, help='minimum value for logarithmic scale')
     parser.add_argument('--max_value', dest='max_value', default=15, help='maximum value for logarithmic scale')
     parser.add_argument('-s', '--show_image', dest='show_image', action='store_true', help='show image')
@@ -96,5 +107,6 @@ if __name__ == '__main__':
     if not args.dat_file or not os.path.isfile(args.dat_file):
         raise ValueError('No input file found: "{}"'.format(args.dat_file))
 
-    plot_image(dat_file=args.dat_file, out_file=args.out_file, log_scale=args.log_scale, min_value=args.min_value,
-               max_value=args.max_value, show_image=args.show_image)
+    plot_image(dat_file=args.dat_file, out_file=args.out_file, log_scale=args.log_scale,
+               manual_scale=args.manual_scale, min_value=args.min_value, max_value=args.max_value,
+               show_image=args.show_image)
