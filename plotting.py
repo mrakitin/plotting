@@ -14,7 +14,7 @@ import numpy as np
 
 
 def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value, show_image):
-    list_2d, x, y = prepare_data(dat_file)
+    list_2d, x_values, y_values = prepare_data(dat_file)
     name = '{}.png'.format(out_file)
 
     # http://stackoverflow.com/a/3900167/4143531:
@@ -48,14 +48,14 @@ def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value
         'p': 1e-12,
         'f': 1e-15,
     }
-    x_min = x.min()
-    x_max = x.max()
+    x_min = x_values.min()
+    x_max = x_values.max()
     for k, v in unit_prefixes.items():
         if v <= abs(x_max - x_min) < v * 1e3:
             x_units_prefix = k
             break
-    y_min = y.min()
-    y_max = y.max()
+    y_min = y_values.min()
+    y_max = y_values.max()
     for k, v in unit_prefixes.items():
         if v <= abs(y_max - y_min) < v * 1e3:
             y_units_prefix = k
