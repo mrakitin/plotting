@@ -72,7 +72,7 @@ def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value
     if log_scale:
         data = np.log10(list_2d)
         if manual_scale:
-            kwargs['clim'] = (min_value, max_value)
+            kwargs['clim'] = (float(min_value), float(max_value))
     else:
         data = list_2d
 
