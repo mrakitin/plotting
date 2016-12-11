@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value, show_image):
+def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value, show_image, cmap):
     list_2d, x_values, y_values = prepare_data(dat_file)
     name = '{}.png'.format(out_file)
 
@@ -62,7 +62,7 @@ def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value
             break
 
     kwargs = {
-        'cmap': 'gray',
+        'cmap': cmap,
         'clim': None,
         'extent': [
             x_min / unit_prefixes[x_units_prefix], x_max / unit_prefixes[x_units_prefix],
@@ -155,6 +155,7 @@ if __name__ == '__main__':
     parser.add_argument('--min_value', dest='min_value', default=3, help='minimum value for logarithmic scale')
     parser.add_argument('--max_value', dest='max_value', default=15, help='maximum value for logarithmic scale')
     parser.add_argument('-s', '--show_image', dest='show_image', action='store_true', help='show image')
+    parser.add_argument('-c', '--cmap', dest='cmap', default='gray', help='color map')
 
     args = parser.parse_args()
 
@@ -163,4 +164,4 @@ if __name__ == '__main__':
 
     plot_image(dat_file=args.dat_file, out_file=args.out_file, log_scale=args.log_scale,
                manual_scale=args.manual_scale, min_value=args.min_value, max_value=args.max_value,
-               show_image=args.show_image)
+               show_image=args.show_image, cmap=args.cmap)
