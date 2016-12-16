@@ -28,10 +28,10 @@ optional arguments:
 
 Plot the intensity distribution in the logarithmic scale and show the resulted image:
 ```bash
-python plotting.py -d res_int_pr_se.dat -l -m --min_value=3.0 --max_value=15 -s
+$ python plotting.py -d res_int_pr_se.dat -l -m --min_value=3.0 --max_value=15 -s
 ```
 
 Plot the intensity distribution in the logarithmic scale and save the resulted file to the current dir:
 ```bash
-python plotting.py -d res_int_pr_se.dat -l -m --min_value=3.0 --max_value=15
+$ python plotting.py -d res_int_pr_se.dat -l -m --min_value=3.0 --max_value=15
 ```
