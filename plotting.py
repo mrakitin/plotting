@@ -11,9 +11,11 @@ import os
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.ndimage import zoom
 
 
-def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value, show_image, cmap):
+def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value, show_image, cmap,
+               resize_factor, width_pixels):
     list_2d, x_values, y_values = prepare_data(dat_file)
     name = '{}.png'.format(out_file)
 
@@ -75,6 +77,19 @@ def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value
             kwargs['clim'] = (float(min_value), float(max_value))
     else:
         data = list_2d
+
+    # Determine if we need to resize at all (width has the priority):
+    if width_pixels or resize_factor:
+        if width_pixels:
+            resize_factor = float(width_pixels) / float(data.shape[0])
+        else:
+            try:
+                resize_factor = float(resize_factor)
+            except ValueError:
+                raise ValueError('Resize factor should be a number!')
+        print('Size before: {}  Dimensions: {}x{}'.format(data.size, *data.shape))
+        data = zoom(data, resize_factor)
+        print('Size after : {}  Dimensions: {}x{}'.format(data.size, *data.shape))
 
     plt.imshow(data, **kwargs)
 
@@ -156,12 +171,17 @@ if __name__ == '__main__':
     parser.add_argument('--max_value', dest='max_value', default=15, help='maximum value for logarithmic scale')
     parser.add_argument('-s', '--show_image', dest='show_image', action='store_true', help='show image')
     parser.add_argument('-c', '--cmap', dest='cmap', default='gray', help='color map')
+    parser.add_argument('-r', '--resize_factor', dest='resize_factor', default=None, help='resize factor')
+    parser.add_argument('-w', '--width_pixels', dest='width_pixels', default=None, help='desired width pixels')
 
     args = parser.parse_args()
 
     if not args.dat_file or not os.path.isfile(args.dat_file):
         raise ValueError('No input file found: "{}"'.format(args.dat_file))
 
-    plot_image(dat_file=args.dat_file, out_file=args.out_file, log_scale=args.log_scale,
-               manual_scale=args.manual_scale, min_value=args.min_value, max_value=args.max_value,
-               show_image=args.show_image, cmap=args.cmap)
+    plot_image(
+        dat_file=args.dat_file, out_file=args.out_file, log_scale=args.log_scale,
+        manual_scale=args.manual_scale, min_value=args.min_value, max_value=args.max_value,
+        show_image=args.show_image, cmap=args.cmap,
+        resize_factor=args.resize_factor, width_pixels=args.width_pixels,
+    )

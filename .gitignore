@@ -94,3 +94,5 @@ ENV/
 .gitignore
 .idea/
 dat_files/
+ideal_rings/
+resizing_test/
