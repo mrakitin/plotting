@@ -5,13 +5,69 @@
 Date: 2016-12-10
 Author: Maksim Rakitin
 """
+from __future__ import division
 
+import glob
+import math
 import os
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+from mpl_toolkits.axes_grid1 import ImageGrid
 from scipy.ndimage import zoom
+
+
+def plot_grid(dat_dir, nrows=4, ncols=7):
+    dat_dir = os.path.abspath(dat_dir)
+    dat_files = glob.glob(os.path.join(dat_dir, '*.dat'))
+    grid_image = os.path.join(dat_dir, 'grid_{}.png')
+
+    num_in_set = nrows * ncols
+    num_of_sets = math.ceil(len(dat_files) / num_in_set)
+
+    # Find max value from all the files to normalize all plots to it:
+    lists = []
+    x_values = []
+    y_values = []
+    gaps = []
+    for i in range(len(dat_files)):
+        gap = os.path.basename(dat_files[i]).replace('.dat', '').replace('g_', '')
+        list_2d, x, y = prepare_data(dat_files[i])
+        lists.append(list_2d)
+        x_values.append(x)
+        y_values.append(y)
+        gaps.append(gap)
+    max_value = np.array(lists).max()
+
+    for set_number in range(num_of_sets):
+        start_images = set_number * num_in_set
+        total_images = start_images + num_in_set
+        fig = plt.figure(1, figsize=(22, 17))  # Letter page, 11"x8.5"
+        grid = ImageGrid(fig, 111,  # similar to subplot(111)
+                         nrows_ncols=(nrows, ncols),  # creates 2x2 grid of axes
+                         axes_pad=0.3,  # pad between axes in inch.
+                         )
+        for i in range(start_images, total_images):
+            if (i + 1) > len(dat_files):
+                break
+            list_2d = lists[i] / max_value
+            x = x_values[i]
+            y = y_values[i]
+            gap = gaps[i]
+            title = 'Ugap={} mm'.format(gap)
+            ax = grid[total_images - i - 1]
+            ax.imshow(list_2d, extent=np.array([x.min(), x.max(), y.min(), y.max()]) * 1e3)
+            ax.set_title(title)
+            ax.set_aspect('equal')
+            ax.set_xlabel('mm')
+            ax.set_ylabel('mm')
+
+        # plt.show()
+        fig.tight_layout()
+        plt.savefig(grid_image.format(set_number + 1))
+        plt.clf()
+    return
 
 
 def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value, show_image, cmap,
