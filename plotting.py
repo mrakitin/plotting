@@ -51,13 +51,18 @@ def plot_grid(dat_dir, nrows=4, ncols=7):
         for i in range(start_images, total_images):
             if (i + 1) > len(dat_files):
                 break
-            list_2d = lists[i] / max_value
+            list_2d = lists[i]
             x = x_values[i]
             y = y_values[i]
             gap = gaps[i]
             title = 'Ugap={} mm'.format(gap)
             ax = grid[total_images - i - 1]
-            ax.imshow(list_2d, extent=np.array([x.min(), x.max(), y.min(), y.max()]) * 1e3)
+            ax.imshow(
+                X=list_2d,
+                extent=np.array([x.min(), x.max(), y.min(), y.max()]) * 1e3,
+                clim=(0, max_value),
+                cmap='jet',  # 'gray'
+            )
             ax.set_title(title)
             ax.set_aspect('equal')
             ax.set_xlabel('mm')
@@ -188,7 +193,7 @@ def _convert_1d_to_2d(list_1d, x_range, y_range):
             aux_list[i] = list_1d[i]
         list_1d = np.array(aux_list)
     list_1d = np.array(list_1d)
-    list_2d = list_1d.reshape(x_range[2], y_range[2], order='F')
+    list_2d = list_1d.reshape(x_range[2], y_range[2], order='C')
     return list_2d
 
 
