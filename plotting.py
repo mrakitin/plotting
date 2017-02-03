@@ -24,7 +24,7 @@ def plot_grid(dat_dir, nrows=4, ncols=7):
     grid_image = os.path.join(dat_dir, 'grid_{}.png')
 
     num_in_set = nrows * ncols
-    num_of_sets = math.ceil(len(dat_files) / num_in_set)
+    num_of_sets = int(math.ceil(len(dat_files) / num_in_set))
 
     # Find max value from all the files to normalize all plots to it:
     lists = []
