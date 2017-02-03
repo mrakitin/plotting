@@ -242,18 +242,21 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    if not args.plot_grid:
-        if not args.dat_file or not os.path.isfile(args.dat_file):
-            raise ValueError('No input file found: "{}"'.format(args.dat_file))
+    if args.dat_file or args.plot_grid:
+        if not args.plot_grid:
+            if not args.dat_file or not os.path.isfile(args.dat_file):
+                raise ValueError('No input file found: "{}"'.format(args.dat_file))
 
-        plot_image(
-            dat_file=args.dat_file, out_file=args.out_file, log_scale=args.log_scale,
-            manual_scale=args.manual_scale, min_value=args.min_value, max_value=args.max_value,
-            show_image=args.show_image, cmap=args.cmap,
-            resize_factor=args.resize_factor, width_pixels=args.width_pixels,
-        )
+            plot_image(
+                dat_file=args.dat_file, out_file=args.out_file, log_scale=args.log_scale,
+                manual_scale=args.manual_scale, min_value=args.min_value, max_value=args.max_value,
+                show_image=args.show_image, cmap=args.cmap,
+                resize_factor=args.resize_factor, width_pixels=args.width_pixels,
+            )
+        else:
+            if not args.folder or not os.path.isdir(args.folder):
+                raise ValueError('No input folder with .dat files found: "{}"'.format(args.folder))
+
+            plot_grid(args.folder)
     else:
-        if not args.folder or not os.path.isdir(args.folder):
-            raise ValueError('No input folder with .dat files found: "{}"'.format(args.folder))
-
-        plot_grid(args.folder)
+        parser.print_help()
