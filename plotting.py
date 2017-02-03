@@ -221,6 +221,7 @@ def _read_data(dat_file, skip_lines=11):
 if __name__ == '__main__':
     import argparse
 
+    # Plot a single graph:
     parser = argparse.ArgumentParser(description='Plot 2D-intensity distribution')
     parser.add_argument('-d', '--dat_file', dest='dat_file', default='', help='input .dat file')
     parser.add_argument('-o', '--out_file', dest='out_file', default='image',
@@ -235,14 +236,24 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--resize_factor', dest='resize_factor', default=None, help='resize factor')
     parser.add_argument('-w', '--width_pixels', dest='width_pixels', default=None, help='desired width pixels')
 
+    # Plot a grid of graphs:
+    parser.add_argument('-g', '--plot-grid', dest='plot_grid', action='store_true', help='plot a grid of graphs')
+    parser.add_argument('-f', '--folder', dest='folder', default=None, help='a folder with the .dat files')
+
     args = parser.parse_args()
 
-    if not args.dat_file or not os.path.isfile(args.dat_file):
-        raise ValueError('No input file found: "{}"'.format(args.dat_file))
+    if not args.plot_grid:
+        if not args.dat_file or not os.path.isfile(args.dat_file):
+            raise ValueError('No input file found: "{}"'.format(args.dat_file))
 
-    plot_image(
-        dat_file=args.dat_file, out_file=args.out_file, log_scale=args.log_scale,
-        manual_scale=args.manual_scale, min_value=args.min_value, max_value=args.max_value,
-        show_image=args.show_image, cmap=args.cmap,
-        resize_factor=args.resize_factor, width_pixels=args.width_pixels,
-    )
+        plot_image(
+            dat_file=args.dat_file, out_file=args.out_file, log_scale=args.log_scale,
+            manual_scale=args.manual_scale, min_value=args.min_value, max_value=args.max_value,
+            show_image=args.show_image, cmap=args.cmap,
+            resize_factor=args.resize_factor, width_pixels=args.width_pixels,
+        )
+    else:
+        if not args.folder or not os.path.isdir(args.folder):
+            raise ValueError('No input folder with .dat files found: "{}"'.format(args.folder))
+
+        plot_grid(args.folder)
