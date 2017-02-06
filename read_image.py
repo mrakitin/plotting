@@ -3,16 +3,23 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import uti_io
-from mpl_toolkits.axes_grid1 import ImageGrid
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from scipy.ndimage import zoom
 
 
-PIXEL_SIZE = 0.06  # mm
+def plot_slices(image_file, show_channel_image=False, channel='red', num_steps=10, zoom_coef=50, pixel_size=0.06):
+    """Plot selected channel of the 2d image and the corresponding horizontal and vertical central cuts:
 
-
-def plot_slices(image_file, show_channel_image=False, show_sliced_image=True, channel='red', num_steps=10):
-    imobj = uti_io.read_image(image_file)['raw_image']
-    data = np.array(imobj)
+    :param image_file:
+    :param show_channel_image:
+    :param channel:
+    :param num_steps:
+    :param zoom_coef:
+    :param pixel_size: [mm]
+    :return: None
+    """
+    img = uti_io.read_image(image_file)['raw_image']
+    data = np.array(img)
 
     # Extract the red channel assuming it corresponds to maximum values (http://stackoverflow.com/a/12201744/4143531):
     channels = {
@@ -21,75 +28,62 @@ def plot_slices(image_file, show_channel_image=False, show_sliced_image=True, ch
         'blue': 2,
     }
     selected_channel = data[..., channels[channel]]
-    from scipy.ndimage import zoom
-    zoom_coef = 50
-    selected_channel = zoom(selected_channel, zoom_coef)
+
+    if zoom_coef > 1:
+        selected_channel = zoom(selected_channel, zoom_coef)
 
     # Convert units from pixels to mm:
-    x_range = np.linspace(0, selected_channel.shape[0] * PIXEL_SIZE, selected_channel.shape[0])
-    y_range = np.linspace(0, selected_channel.shape[1] * PIXEL_SIZE, selected_channel.shape[1])
+    x_range = np.linspace(0, selected_channel.shape[1] * pixel_size, selected_channel.shape[1])
+    y_range = np.linspace(0, selected_channel.shape[0] * pixel_size, selected_channel.shape[0])
 
-    x_ticks = np.linspace(0, selected_channel.shape[0] * PIXEL_SIZE/zoom_coef, num_steps)
-    y_ticks = np.linspace(0, selected_channel.shape[1] * PIXEL_SIZE/zoom_coef, num_steps)
+    resize = int(np.ceil(selected_channel.shape[1] / selected_channel.shape[0] * num_steps))
+    x_ticks = np.linspace(0, selected_channel.shape[0] * pixel_size / zoom_coef, num_steps)
+    y_ticks = np.linspace(0, selected_channel.shape[1] * pixel_size / zoom_coef, resize)
 
-    # Organize a grid for final image:
-    fig = plt.figure(1, figsize=(8, 8))
-    grid = ImageGrid(
-        fig, 111,
-        nrows_ncols=(2, 2),
-        axes_pad=0.2,
-    )
+    fig, ax = plt.subplots(figsize=(10, 8))
 
     # Show the image with the selected channel:
-    ax = grid[2]
     ax.imshow(
         selected_channel,
         cmap='gray',
         extent=[
-            y_range[0], y_range[-1],
-            x_range[0], x_range[-1],
+            y_ticks[0], y_ticks[-1],
+            x_ticks[0], x_ticks[-1],
         ]
     )
+    ax.set_xticks(y_ticks)
+    ax.set_yticks(x_ticks)
 
     # Select the slices and plot them:
-    middle_x = selected_channel[:, int(selected_channel.shape[1] / 2)]
-    middle_y = selected_channel[int(selected_channel.shape[0] / 2), :]
+    horiz_center = int(selected_channel.shape[1] / 2)
+    vert_center = int(selected_channel.shape[0] / 2)
 
-    # Plot slices:
-    axes_dict = {
-        'x': 'vertical slice',
-        'y': 'horizontal slice',
-    }
-    for i, k in enumerate(axes_dict.keys()):
-        d = locals()['middle_{}'.format(k)]
-        if k == 'x':
-            ax = grid[3]
-            ax.plot(d[::-1], locals()['{}_range'.format(k)])
-        elif k == 'y':
-            ax = grid[0]
-            ax.plot(locals()['{}_range'.format(k)], d)
-            # grid[0].set_xticks(x_ticks)
-        ax.grid()
-        parms = [channel, axes_dict[k], len(d)]
-        title = '{} channel / {} in center / {} points'.format(*parms)
-        fname = '{}_channel_{}_{}_points'.format(*parms)
-        plt.title(title)
-        plt.xlim(locals()['{}_range'.format(k)][0], locals()['{}_range'.format(k)][-1])
-        # plt.xticks(locals()['{}_ticks'.format(k)])
-        plt.xlabel('Coordinate [mm]')
-        plt.ylabel('Intensity [arb.units]')
-        # plt.grid()
-        # if show_sliced_image:
-        #     plt.show()
-        # else:
-        #     plt.savefig(os.path.join(imdir, '{}.tif'.format(fname)))
-        # _clear_plots(plt)
+    vert_center_cut = selected_channel[:, horiz_center]
+    horiz_center_cut = selected_channel[vert_center, :]
 
-    # This affects all axes as share_all = True.
-    grid.axes_llc.set_yticklabels(x_ticks)
-    grid.axes_llc.set_xticklabels(y_ticks)
+    # Set horizontal and vertical cut lines:
+    ax.axvline(x=x_range[horiz_center] / zoom_coef, color='red')
+    ax.axhline(y=y_range[vert_center] / zoom_coef, color='red')
 
-    # plt.tight_layout()
+    ax.set_xlabel('Coordinate [mm]')
+    ax.set_ylabel('Coordinate [mm]')
+
+    # Plot the cuts:
+    divider = make_axes_locatable(ax)
+
+    ax_horiz_cut = divider.append_axes('top', 1.5, pad=0.3, sharex=ax)
+    ax_vert_cut = divider.append_axes('right', 1.5, pad=0.6, sharey=ax)
+
+    ax_horiz_cut.plot(x_range / zoom_coef, horiz_center_cut)
+    ax_horiz_cut.grid()
+    ax_horiz_cut.set_ylabel('Intensity [arb.units]')
+
+    ax_vert_cut.plot(vert_center_cut[::-1], y_range / zoom_coef)
+    ax_vert_cut.grid()
+    ax_vert_cut.set_xlabel('Intensity [arb.units]')
+
+    plt.tight_layout()
+
     if show_channel_image:
         plt.show()
     else:
@@ -107,18 +101,23 @@ def _clear_plots(plot):
 
 if __name__ == '__main__':
     imdir = 'C:\\Users\\Maksim\\Documents\\Work\\Beamlines\\ESM\\2017-02-02 ESM Diagon simulations\\ESM_images'
+    pixel_size = 0.06  # mm
     # imfile = 'exp_22.5mm.tif'
-    # imfile = 'exp_22.5mm_not_square.tif'
+    imfile = 'exp_22.5mm_not_square.tif'
     # imfile = 'exp_22.5mm_narrow.tif'
-    imfile = 'exp_22.5mm_narrow.png'
+    # imfile = 'exp_22.5mm_narrow.png'
+
+    # pixel_size = 12 / 276.  # 0.043 mm
+    # imfile = 'calc_230eV_22.5mm.png'
+
     impath = os.path.abspath(os.path.join(imdir, imfile))
-    show_channel_image = True
-    show_sliced_image = False
+    # show_channel_image = True
+    show_channel_image = False
     channel = 'red'
 
     plot_slices(
         image_file=impath,
         show_channel_image=show_channel_image,
-        show_sliced_image=show_sliced_image,
         channel=channel,
+        pixel_size=pixel_size,
     )
