@@ -7,7 +7,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.ndimage import zoom
 
 
-def plot_slices(image_file, show_channel_image=False, channel='red', num_steps=10, zoom_coef=50, pixel_size=0.06):
+def plot_slices(image_file, show_channel_image=False, channel='red', num_steps=10, zoom_coef=1, pixel_size=0.06):
     """Plot selected channel of the 2d image and the corresponding horizontal and vertical central cuts:
 
     :param image_file:
@@ -18,7 +18,9 @@ def plot_slices(image_file, show_channel_image=False, channel='red', num_steps=1
     :param pixel_size: [mm]
     :return: None
     """
-    img = uti_io.read_image(image_file)['raw_image']
+    image_dir = os.path.dirname(image_file)
+
+    img = uti_io.read_image(image_file, ignore_bottom_limit=True)['raw_image']
     data = np.array(img)
 
     # Extract the red channel assuming it corresponds to maximum values (http://stackoverflow.com/a/12201744/4143531):
@@ -62,8 +64,8 @@ def plot_slices(image_file, show_channel_image=False, channel='red', num_steps=1
     horiz_center_cut = selected_channel[vert_center, :]
 
     # Set horizontal and vertical cut lines:
-    ax.axvline(x=x_range[horiz_center] / zoom_coef, color='red')
-    ax.axhline(y=y_range[vert_center] / zoom_coef, color='red')
+    ax.axvline(x=x_range[horiz_center] / zoom_coef, color=channel)
+    ax.axhline(y=y_range[vert_center] / zoom_coef, color=channel)
 
     ax.set_xlabel('Coordinate [mm]')
     ax.set_ylabel('Coordinate [mm]')
@@ -87,7 +89,10 @@ def plot_slices(image_file, show_channel_image=False, channel='red', num_steps=1
     if show_channel_image:
         plt.show()
     else:
-        plt.savefig(os.path.join(imdir, '{}_channel.tif'.format(channel)))
+        infile_name, infile_ext = os.path.splitext(os.path.basename(image_file))
+        outfile_name = '{}_cuts_{}_channel{}'.format(infile_name, channel, infile_ext)
+        plt.savefig(os.path.join(image_dir, outfile_name))
+
     _clear_plots(plt)
 
     return
@@ -101,23 +106,24 @@ def _clear_plots(plot):
 
 if __name__ == '__main__':
     imdir = 'C:\\Users\\Maksim\\Documents\\Work\\Beamlines\\ESM\\2017-02-02 ESM Diagon simulations\\ESM_images'
-    pixel_size = 0.06  # mm
+    # pixel_size = 0.06  # mm
+    # imfile = 'exp_22.5mm_not_square.tif'
     # imfile = 'exp_22.5mm.tif'
-    imfile = 'exp_22.5mm_not_square.tif'
     # imfile = 'exp_22.5mm_narrow.tif'
     # imfile = 'exp_22.5mm_narrow.png'
 
-    # pixel_size = 12 / 276.  # 0.043 mm
-    # imfile = 'calc_230eV_22.5mm.png'
+    pixel_size = 12 / 276.  # 0.043 mm
+    imfile = 'calc_230eV_22.5mm.png'
 
     impath = os.path.abspath(os.path.join(imdir, imfile))
     # show_channel_image = True
     show_channel_image = False
-    channel = 'red'
 
-    plot_slices(
-        image_file=impath,
-        show_channel_image=show_channel_image,
-        channel=channel,
-        pixel_size=pixel_size,
-    )
+    channels = ['red', 'green', 'blue']
+    for channel in channels:
+        plot_slices(
+            image_file=impath,
+            show_channel_image=show_channel_image,
+            channel=channel,
+            pixel_size=pixel_size,
+        )
