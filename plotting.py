@@ -43,11 +43,12 @@ def plot_grid(dat_dir, nrows=4, ncols=7):
     for set_number in range(num_of_sets):
         start_images = set_number * num_in_set
         total_images = start_images + num_in_set
-        fig = plt.figure(1, figsize=(22, 17))  # Letter page, 11"x8.5"
-        grid = ImageGrid(fig, 111,  # similar to subplot(111)
-                         nrows_ncols=(nrows, ncols),  # creates 2x2 grid of axes
-                         axes_pad=0.3,  # pad between axes in inch.
-                         )
+        fig = plt.figure(1, figsize=(22, 17))  # scaled letter page, 11"x8.5"
+        grid = ImageGrid(
+            fig, 111,  # similar to subplot(111)
+            nrows_ncols=(nrows, ncols),  # creates nxm grid of axes
+            axes_pad=0.3,  # pad between axes in inch.
+        )
         for i in range(start_images, total_images):
             if (i + 1) > len(dat_files):
                 break
