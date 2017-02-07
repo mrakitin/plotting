@@ -77,22 +77,11 @@ def plot_grid(dat_dir, nrows=4, ncols=7):
 
 
 def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value, show_image, cmap,
-               resize_factor, width_pixels):
+               resize_factor, width_pixels, pure):
     list_2d, x_values, y_values = prepare_data(dat_file)
     name = '{}.png'.format(out_file)
 
-    # http://stackoverflow.com/a/3900167/4143531:
-    mpl.rcParams.update({'font.size': 18})
-
-    # http://stackoverflow.com/questions/16492830/colorplot-of-2d-array-matplotlib:
-    fig = plt.figure(figsize=(16, 10))
-
-    ax = fig.add_subplot(111)
     log_scale_text = ' (logarithmic scale)' if log_scale else ''
-    ax.set_title('Intensity Distribution{} - {}'.format(
-        log_scale_text,
-        ' '.join([x.capitalize() for x in out_file.split('_')]))
-    )
 
     x_units = 'm'
     y_units = 'm'
@@ -153,24 +142,50 @@ def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value
         data = zoom(data, resize_factor)
         print('Size after : {}  Dimensions: {}x{}'.format(data.size, *data.shape))
 
+    # http://stackoverflow.com/a/3900167/4143531:
+    mpl.rcParams.update({'font.size': 18})
+    # http://stackoverflow.com/questions/16492830/colorplot-of-2d-array-matplotlib:
+
+    figsize = (8, 8) if pure else (16, 10)
+    fig = plt.figure(frameon=False, figsize=figsize)
+
+    save_kwargs = {}
+    if not pure:
+        ax = fig.add_subplot(111)
+        ax.set_aspect('equal')
+        cax = fig.add_axes([0.12, 0.1, 0.78, 0.8])
+        cax.get_xaxis().set_visible(False)
+        cax.get_yaxis().set_visible(False)
+        cax.patch.set_alpha(0)
+        cax.set_frame_on(False)
+        ax.set_title('Intensity Distribution{} - {}'.format(
+            log_scale_text,
+            ' '.join([x.capitalize() for x in out_file.split('_')]))
+        )
+        ax.set_xlabel(r'Horizontal Position [{}{}]'.format(x_units_prefix, x_units))
+        ax.set_ylabel(r'Vertical Position [{}{}]'.format(y_units_prefix, y_units))
+        plt.colorbar(orientation='vertical')
+    else:
+        ax = plt.Axes(fig, [0., 0., 1., 1.])
+        ax.set_axis_off()
+        fig.add_axes(ax)
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        ax.set_axis_off()
+        # fig.tight_layout()
+        # plt.tight_layout()
+        # plt.axis('off')
+        save_kwargs = {
+            'pad_inches': -0.03,
+            'bbox_inches': 'tight',
+        }
+
     plt.imshow(data, **kwargs)
-
-    ax.set_aspect('equal')
-    # ax.set_aspect('1.25')
-    ax.set_xlabel(r'Horizontal Position [{}{}]'.format(x_units_prefix, x_units))
-    ax.set_ylabel(r'Vertical Position [{}{}]'.format(y_units_prefix, y_units))
-
-    cax = fig.add_axes([0.12, 0.1, 0.78, 0.8])
-    cax.get_xaxis().set_visible(False)
-    cax.get_yaxis().set_visible(False)
-    cax.patch.set_alpha(0)
-    cax.set_frame_on(False)
-    plt.colorbar(orientation='vertical')
 
     if show_image:
         plt.show()
     else:
-        plt.savefig(name)
+        plt.savefig(name, **save_kwargs)
 
 
 def prepare_data(dat_file):
@@ -236,6 +251,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--cmap', dest='cmap', default='gray', help='color map')
     parser.add_argument('-r', '--resize_factor', dest='resize_factor', default=None, help='resize factor')
     parser.add_argument('-w', '--width_pixels', dest='width_pixels', default=None, help='desired width pixels')
+    parser.add_argument('-p', '--pure', dest='pure', action='store_false', help='print pure 2D distribution')
 
     # Plot a grid of graphs:
     parser.add_argument('-g', '--plot-grid', dest='plot_grid', action='store_true', help='plot a grid of graphs')
@@ -253,6 +269,7 @@ if __name__ == '__main__':
                 manual_scale=args.manual_scale, min_value=args.min_value, max_value=args.max_value,
                 show_image=args.show_image, cmap=args.cmap,
                 resize_factor=args.resize_factor, width_pixels=args.width_pixels,
+                pure=args.pure,
             )
         else:
             if not args.folder or not os.path.isdir(args.folder):

@@ -21,7 +21,9 @@ def plot_slices(image_file, show_channel_image=False, channel='red', num_steps=1
     image_dir = os.path.dirname(image_file)
 
     img = uti_io.read_image(image_file, ignore_bottom_limit=True)['raw_image']
-    data = np.array(img)
+    data_rgb = np.array(img)
+    img = img.convert('HSV')
+    data_hsv = np.array(img)
 
     # Extract the red channel assuming it corresponds to maximum values (http://stackoverflow.com/a/12201744/4143531):
     channels = {
@@ -29,7 +31,11 @@ def plot_slices(image_file, show_channel_image=False, channel='red', num_steps=1
         'green': 1,
         'blue': 2,
     }
-    selected_channel = data[..., channels[channel]]
+    if channel == 'all':
+        # Brightness/value (https://en.wikipedia.org/wiki/HSL_and_HSV, http://stackoverflow.com/a/15794784/4143531):
+        selected_channel = data_hsv[:, :, 2]
+    else:
+        selected_channel = data_rgb[..., channels[channel]]
 
     if zoom_coef > 1:
         selected_channel = zoom(selected_channel, zoom_coef)
@@ -64,8 +70,9 @@ def plot_slices(image_file, show_channel_image=False, channel='red', num_steps=1
     horiz_center_cut = selected_channel[vert_center, :]
 
     # Set horizontal and vertical cut lines:
-    ax.axvline(x=x_range[horiz_center] / zoom_coef, color=channel)
-    ax.axhline(y=y_range[vert_center] / zoom_coef, color=channel)
+    line_color = 'yellow' if channel == 'all' else channel
+    ax.axvline(x=x_range[horiz_center] / zoom_coef, color=line_color)
+    ax.axhline(y=y_range[vert_center] / zoom_coef, color=line_color)
 
     ax.set_xlabel('Coordinate [mm]')
     ax.set_ylabel('Coordinate [mm]')
@@ -106,20 +113,25 @@ def _clear_plots(plot):
 
 if __name__ == '__main__':
     imdir = 'C:\\Users\\Maksim\\Documents\\Work\\Beamlines\\ESM\\2017-02-02 ESM Diagon simulations\\ESM_images'
-    # pixel_size = 0.06  # mm
-    # imfile = 'exp_22.5mm_not_square.tif'
+    pixel_size = 0.06  # mm
+    imfile = 'exp_22.5mm_not_square.tif'
     # imfile = 'exp_22.5mm.tif'
     # imfile = 'exp_22.5mm_narrow.tif'
     # imfile = 'exp_22.5mm_narrow.png'
 
-    pixel_size = 12 / 276.  # 0.043 mm
-    imfile = 'calc_230eV_22.5mm.png'
+    # pixel_size = 12 / 276.  # 0.043 mm
+    # imfile = 'calc_230eV_22.5mm.png'
 
     impath = os.path.abspath(os.path.join(imdir, imfile))
-    # show_channel_image = True
-    show_channel_image = False
+
+    # pixel_size = 12 / 807.
+    # impath = os.path.abspath('image.png')
+
+    show_channel_image = True
+    # show_channel_image = False
 
     channels = ['red', 'green', 'blue']
+    # channels = ['all']
     for channel in channels:
         plot_slices(
             image_file=impath,
