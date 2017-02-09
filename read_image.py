@@ -112,9 +112,9 @@ def _clear_plots(plot):
 
 
 if __name__ == '__main__':
-    imdir = 'C:\\Users\\Maksim\\Documents\\Work\\Beamlines\\ESM\\2017-02-02 ESM Diagon simulations\\ESM_images'
-    pixel_size = 0.06  # mm
-    imfile = 'exp_22.5mm_not_square.tif'
+    # imdir = 'C:\\Users\\Maksim\\Documents\\Work\\Beamlines\\ESM\\2017-02-02 ESM Diagon simulations\\ESM_images'
+    # pixel_size = 0.06  # mm
+    # imfile = 'exp_22.5mm_not_square.tif'
     # imfile = 'exp_22.5mm.tif'
     # imfile = 'exp_22.5mm_narrow.tif'
     # imfile = 'exp_22.5mm_narrow.png'
@@ -122,6 +122,9 @@ if __name__ == '__main__':
     # pixel_size = 12 / 276.  # 0.043 mm
     # imfile = 'calc_230eV_22.5mm.png'
 
+    imdir = 'C:\\bin\\mrakitin\\plotting\\out'
+    imfile = 'g_22.5.png'
+    pixel_size = 0.035 # mm
     impath = os.path.abspath(os.path.join(imdir, imfile))
 
     # pixel_size = 12 / 807.

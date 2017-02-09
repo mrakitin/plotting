@@ -167,7 +167,6 @@ def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value
         plt.colorbar(orientation='vertical')
     else:
         ax = plt.Axes(fig, [0., 0., 1., 1.])
-        ax.set_axis_off()
         fig.add_axes(ax)
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
