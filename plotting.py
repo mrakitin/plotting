@@ -168,16 +168,8 @@ def plot_image(dat_file, out_file, log_scale, manual_scale, min_value, max_value
     else:
         ax = plt.Axes(fig, [0., 0., 1., 1.])
         fig.add_axes(ax)
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
         ax.set_axis_off()
-        # fig.tight_layout()
-        # plt.tight_layout()
-        # plt.axis('off')
-        save_kwargs = {
-            'pad_inches': -0.03,
-            'bbox_inches': 'tight',
-        }
+        fig.add_axes(ax)
 
     plt.imshow(data, **kwargs)
 
