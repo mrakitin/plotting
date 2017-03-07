@@ -134,19 +134,17 @@ def read_single_pic(image_file, x_start, x_len, y_start, y_len, outdir=None, sho
 
 
 if __name__ == '__main__':
-    base_dir = os.path.abspath('C:\\Users\\Maksim\\Desktop\\2017-02-07 SMI measurements')
+    base_dir = os.path.abspath('C:\\Users\\Maksim\\Desktop\\2017-03-06 SMI measurements')
     dir_list = [
-        'DCM_scan_5.71-6.04',
-        'DCM_scan_13.8_14.7',
-        'IVU_scan_6.2-6.8_5.77014',
-        'IVU_scan_6.2-6.8_14.19',
+        'DCM_scan_5.71-6.04_elev-375um',
+        'DCM_scan_13.8-14.7_elev-375um',
     ]
 
     # Cut parameters:
-    x_start = 459
-    x_len = 75
-    y_start = 510
-    y_len = 95
+    x_start = 451
+    x_len = 71
+    y_start = 502
+    y_len = 83
     save = False
 
     # Grid parameters:
