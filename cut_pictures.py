@@ -9,12 +9,12 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 
 
 def cut_pictures(image_dir, x_start, x_len, y_start, y_len, search_extention='tif', outdir=None, save=True, cut_every=3,
-                 silent=False):
+                 silent=False, rotate=True):
     image_list = glob.glob(os.path.join(image_dir, '*.{}'.format(search_extention)))
     cut_images = []
     for i, f in enumerate(image_list):
         if i % cut_every == 0:
-            cut_data = read_single_pic(f, x_start, x_len, y_start, y_len, outdir, save=save)
+            cut_data = read_single_pic(f, x_start, x_len, y_start, y_len, outdir, save=save, rotate=rotate)
             cut_images.append(cut_data)
             if not silent:
                 print('File: {}'.format(f))
@@ -98,7 +98,8 @@ def plot_grid(data_list, nrows, ncols, cmap='afmhot', save_dir='', first_set_onl
     return
 
 
-def read_single_pic(image_file, x_start, x_len, y_start, y_len, outdir=None, show=False, save=True, cmap='afmhot'):
+def read_single_pic(image_file, x_start, x_len, y_start, y_len, outdir=None, show=False, save=True, cmap='afmhot',
+                    rotate=True):
     """Cut a single image.
 
     :param image_file:
@@ -116,7 +117,8 @@ def read_single_pic(image_file, x_start, x_len, y_start, y_len, outdir=None, sho
     cut_data = data[y_start:y_start + y_len, x_start:x_start + x_len]
 
     # Rotate the image:
-    cut_data = np.rot90(cut_data)
+    if rotate:
+        cut_data = np.rot90(cut_data)
 
     infile_name, infile_ext = os.path.splitext(os.path.basename(image_file))
     outfile_name = '{}_cut_x={}_y={}_{}x{}{}'.format(infile_name, x_start, y_start, x_len, y_len, infile_ext)
@@ -152,6 +154,8 @@ if __name__ == '__main__':
     ncols = 15
     wider = 3.5
     first_set_only = True
+    rotate = True
+    # rotate=False
 
     for d in dir_list:
         image_dir = os.path.join(base_dir, d)
@@ -162,7 +166,7 @@ if __name__ == '__main__':
 
         # Process in a batch mode:
         cut_images = cut_pictures(image_dir, x_start, x_len, y_start, y_len, search_extention='tif', outdir=outdir,
-                                  save=save)
+                                  save=save, rotate=rotate)
         print('Number of pictures: {}'.format(len(cut_images)))
 
         plot_grid(cut_images, nrows=nrows, ncols=ncols, save_dir=outdir, wider=wider, first_set_only=first_set_only)
